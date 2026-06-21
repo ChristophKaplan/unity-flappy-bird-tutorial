@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.UI;
+using TMPro;
 
 [DefaultExecutionOrder(-1)]
 public class GameManager : MonoBehaviour
@@ -8,7 +8,7 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private Player player;
     [SerializeField] private Spawner spawner;
-    [SerializeField] private Text scoreText;
+    [SerializeField] private TMP_Text scoreText;
     [SerializeField] private GameObject playButton;
     [SerializeField] private GameObject gameOver;
 
@@ -39,6 +39,7 @@ public class GameManager : MonoBehaviour
     {
         Time.timeScale = 0f;
         player.enabled = false;
+        spawner.enabled = false;
     }
 
     public void Play()
@@ -51,8 +52,9 @@ public class GameManager : MonoBehaviour
 
         Time.timeScale = 1f;
         player.enabled = true;
+        spawner.enabled = true;
 
-        Pipes[] pipes = FindObjectsOfType<Pipes>();
+        Pipes[] pipes = FindObjectsByType<Pipes>(FindObjectsSortMode.None);
 
         for (int i = 0; i < pipes.Length; i++) {
             Destroy(pipes[i].gameObject);

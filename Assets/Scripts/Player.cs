@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class Player : MonoBehaviour
 {
@@ -31,7 +32,7 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0)) {
+        if (Keyboard.current.spaceKey.wasPressedThisFrame || Mouse.current.leftButton.wasPressedThisFrame) {
             direction = Vector3.up * strength;
         }
 
@@ -39,7 +40,14 @@ public class Player : MonoBehaviour
         direction.y += gravity * Time.deltaTime;
         transform.position += direction * Time.deltaTime;
 
-        // Tilt the bird based on the direction
+        // Neigung des Vogels basierend auf der Bewegungsrichtung:
+        // eulerAngles beschreibt die Rotation als x/y/z-Winkel in Grad.
+        // Wir lesen die aktuelle Rotation aus, ändern nur die z-Achse (Kippen links/rechts)
+        // und schreiben sie zurück – x und y bleiben unberührt.
+        // direction.y ist positiv beim Aufsteigen und negativ beim Fallen.
+        // Multipliziert mit tilt ergibt das einen Neigungswinkel:
+        //   Vogel steigt  → direction.y > 0 → rotation.z > 0 → Nase zeigt nach oben
+        //   Vogel fällt   → direction.y < 0 → rotation.z < 0 → Nase zeigt nach unten
         Vector3 rotation = transform.eulerAngles;
         rotation.z = direction.y * tilt;
         transform.eulerAngles = rotation;
@@ -47,15 +55,16 @@ public class Player : MonoBehaviour
 
     private void AnimateSprite()
     {
-        spriteIndex++;
+        if (sprites.Length == 0) return;
 
-        if (spriteIndex >= sprites.Length) {
-            spriteIndex = 0;
-        }
-
-        if (spriteIndex < sprites.Length && spriteIndex >= 0) {
-            spriteRenderer.sprite = sprites[spriteIndex];
-        }
+        // Der Modulo-Operator (%) gibt den Rest einer ganzzahligen Division zurück.
+        // Beispiel mit 3 Sprites (Index 0, 1, 2):
+        //   (0+1) % 3 = 1
+        //   (1+1) % 3 = 2
+        //   (2+1) % 3 = 0  ← springt automatisch zurück auf 0
+        // So wird ein Index-out-of-bounds-Fehler vermieden und die Animation läuft endlos.
+        spriteIndex = (spriteIndex + 1) % sprites.Length;
+        spriteRenderer.sprite = sprites[spriteIndex];
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -66,5 +75,4 @@ public class Player : MonoBehaviour
             GameManager.Instance.IncreaseScore();
         }
     }
-
 }
